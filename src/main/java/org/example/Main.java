@@ -1,79 +1,150 @@
 package org.example;
 
 import java.util.Scanner;
+
 public class Main {
-    public static void main(String[] args) {
-
+    public static int inputForMenu(Scanner scanner) {
         try {
+            int menuInput;
+            while (true) {
+                String inputText = scanner.nextLine();
+                if (inputText.matches("^\\d{0,10}$")) {
+                    menuInput = Integer.parseInt(inputText);
+                    break;
+                } else {
+                    throw new Exception("Введено не число");
+                }
 
-            Scanner scan = new Scanner(System.in);
-            boolean exit = false;
+            }
+            return menuInput;
+        } catch (Exception e) {
+            System.out.println("Введите номер пункта меню еще раз");
+            return 0;
+        }
+    }
 
-            MyDictionary mD = new MyDictionary("^[a-zA-Z]{4}$","^\\d{5}$");
+    public static void main(String[] args) {
+        try (Scanner scan = new Scanner(System.in)) {
 
-            String path = "";
+            boolean exitFunctionsMenu = false;
+            boolean exitDictionaryMenu = false;
 
-            while (!exit) {
+            MyDictionaryFirst dictionaryFirst = new MyDictionaryFirst();
+            MyDictionarySecond dictionarySecond = new MyDictionarySecond();
+            MyDictionaryAny dictionaryActive = new MyDictionaryAny();
+            String path;
+            String savePath;
+            int menuInput;
+
+            System.out.println("Введите путь к файлу: ");
+            savePath = scan.nextLine();
+
+            while (!exitDictionaryMenu) {
                 System.out.println(
-                        "Выберете пункт меню:" + "\n"
-                                + "1. Чтение списка пар из файла" + "\n"
-                                + "2. Просмотр словаря" + "\n"
-                                + "3. Удаление записи по ключу" + "\n"
-                                + "4. Поиск записи по ключу" + "\n"
-                                + "5. Добавление записи при условии соответствия требованиям конкретного словаря" + "\n"
-                                + "6. Перевернуть словарь" + "\n"
-                                + "7. Выход" + "\n");
-                int menuinput = scan.nextInt();
+                        """
+                                Выберете пункт меню:
+                                1. Первый словарь
+                                2. Второй словарь
+                                3. Выход
 
-                switch (menuinput) {
+                                """);
+
+                menuInput = inputForMenu(scan);
+
+
+                switch (menuInput) {
                     case 1:
-                        path = "";
-                        System.out.println("Введите путь к файлу: ");
-                        path = scan.next();
-                        mD.readFromFile(path);
-                        mD.printDictionary();
+                        dictionaryActive = dictionaryFirst;
+                        dictionaryActive.clearDictionary();
+                        dictionaryActive.readFromFile(savePath);
+                        System.out.println("Словарь 1 выбран \n");
+                        exitFunctionsMenu = false;
+                        exitDictionaryMenu = true;
                         break;
                     case 2:
-                        mD.printDictionary();
+                        dictionaryActive = dictionarySecond;
+                        dictionaryActive.clearDictionary();
+                        dictionaryActive.readFromFile(savePath);
+                        System.out.println("Словарь 2 выбран \n");
+                        exitFunctionsMenu = false;
+                        exitDictionaryMenu = true;
                         break;
                     case 3:
-
-                        System.out.println("Введите ключ по которому необходимо удалить запись в словаре: ");
-                        String kdelete = scan.next();
-                        mD.deleteKey(kdelete);
-
+                        exitDictionaryMenu = true;
+                        exitFunctionsMenu = true;
                         break;
-                    case 4:
-
-                        System.out.println("Введите ключ по которому необходимо найти запись в словаре: ");
-                        String ksearch = scan.next();
-                        String val =  mD.searchKey(ksearch);
-                        System.out.println("Значение по запрошеному ключу: " + val);
+                    default:
+                        System.out.println("Пункт меню с таким номером отсутсвует");
+                        exitFunctionsMenu = true;
                         break;
-                    case 5:
+                }
+                while (!exitFunctionsMenu) {
+                    System.out.println(
+                            """
+                                    Выберете пункт меню:
+                                    1. Чтение из файла
+                                    2. Запись в файл
+                                    3. Просмотр словаря
+                                    4. Удаление записи по ключу в словаре
+                                    5. Поиск записи по ключу в словаре
+                                    6. Добавление записи по ключу удовлетворяющей условиям в словарь
+                                    7. Сменить словарь
+                                    8. Выход
+                                    """);
+                    menuInput = inputForMenu(scan);
 
-                        System.out.println("Введите ключ: ");
-                        String keyAdd = scan.next();
-                        System.out.println("Введите значение: ");
-                        String valueAdd = scan.next();
-                        keyAdd += " - " + valueAdd;
-                        mD.dictionaryPutString(keyAdd);
-
-                        break;
-                    case 6:
-                        mD.swapValueToKey();
-                        System.out.println("Словарь перевернут");
-                        break;
-                    case 7:
-                        exit = true;
-                        break;
-
+                    switch (menuInput) {
+                        case 1:
+                            System.out.println("Введите путь к файлу: ");
+                            path = scan.nextLine();
+                            dictionaryActive.readFromFile(path);
+                            break;
+                        case 2:
+                            //  System.out.println("Введите путь к файлу: ");
+                            //path = scan.nextLine();
+                            //  savePath = path;
+                            dictionaryActive.writeToFile(savePath);
+                            break;
+                        case 3:
+                            dictionaryActive.printDictionary();
+                            break;
+                        case 4:
+                            System.out.println("Введите ключ по которому необходимо удалить запись в словаре: ");
+                            String keyDelete = scan.nextLine();
+                            dictionaryActive.deleteKey(keyDelete);
+                            break;
+                        case 5:
+                            System.out.println("Введите ключ по которому необходимо найти запись в словаре: ");
+                            String keySearch = scan.nextLine();
+                            String val = dictionaryActive.searchKey(keySearch);
+                            System.out.println("Значение по запрошеному ключу: " + val);
+                            break;
+                        case 6:
+                            System.out.println("Введите ключ: ");
+                            String keyAdd = scan.nextLine();
+                            System.out.println("Введите значение: ");
+                            String valueAdd = scan.nextLine();
+                            keyAdd += " - " + valueAdd;
+                            dictionaryActive.dictionaryPutString(keyAdd, false);
+                            break;
+                        case 7:
+                            exitFunctionsMenu = true;
+                            exitDictionaryMenu = false;
+                            dictionaryActive.writeToFile(savePath);
+                            break;
+                        case 8:
+                            exitFunctionsMenu = true;
+                            exitDictionaryMenu = true;
+                            dictionaryActive.writeToFile(savePath);
+                            break;
+                        default:
+                            System.out.println("Пункт меню с таким номером отсутсвует");
+                    }
                 }
             }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
         }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-        }
+
     }
 }
